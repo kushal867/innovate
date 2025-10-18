@@ -1,0 +1,77 @@
+{% load static %}
+<nav class="bg-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center space-x-4">
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-primary">
+                    <i class="fas fa-lightbulb"></i> Nepal Ideas
+                </a>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'ideas:list' %}" class="text-gray-700 hover:text-primary transition">
+                    <i class="fas fa-lightbulb mr-1"></i> Ideas
+                </a>
+                <a href="{% url 'groups:list' %}" class="text-gray-700 hover:text-primary transition">
+                    <i class="fas fa-users mr-1"></i> Groups
+                </a>
+                <a href="{% url 'resources:list' %}" class="text-gray-700 hover:text-primary transition">
+                    <i class="fas fa-book mr-1"></i> Resources
+                </a>
+                <a href="{% url 'events:list' %}" class="text-gray-700 hover:text-primary transition">
+                    <i class="fas fa-calendar mr-1"></i> Events
+                </a>
+                <a href="{% url 'gamification:leaderboard' %}" class="text-gray-700 hover:text-primary transition">
+                    <i class="fas fa-trophy mr-1"></i> Leaderboard
+                </a>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'notifications:list' %}" class="text-gray-700 hover:text-primary transition relative">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">3</span>
+                    </a>
+                    <a href="{% url 'messaging:inbox' %}" class="text-gray-700 hover:text-primary transition">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </a>
+                    <div class="relative group">
+                        <button class="flex items-center space-x-2 text-gray-700 hover:text-primary transition">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-8 h-8 rounded-full">
+                            {% else %}
+                                <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center">
+                                    {{ user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                            <span>{{ user.username }}</span>
+                            <i class="fas fa-chevron-down text-sm"></i>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
+                            <a href="{% url 'users:profile' user.username %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-user mr-2"></i> Profile
+                            </a>
+                            <a href="{% url 'users:settings' %}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-cog mr-2"></i> Settings
+                            </a>
+                            {% if user.is_staff %}
+                            <a href="/admin/" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">
+                                <i class="fas fa-dashboard mr-2"></i> Admin
+                            </a>
+                            {% endif %}
+                            <hr class="my-1">
+                            <a href="{% url 'users:logout' %}" class="block px-4 py-2 text-red-600 hover:bg-gray-100">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'users:login' %}" class="text-gray-700 hover:text-primary transition">Login</a>
+                    <a href="{% url 'users:register' %}" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                        Sign Up
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

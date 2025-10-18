@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Group - {{ group.name }} - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">Edit Group</h1>
+        <p class="text-gray-600 mt-2">Update your group information</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-8">
+        {% crispy form %}
+    </div>
+
+    <div class="mt-6 flex gap-4">
+        <a href="{% url 'groups:detail' group.slug %}" class="text-primary hover:text-blue-600 transition duration-200">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Group
+        </a>
+        <a href="{% url 'groups:delete' group.slug %}" class="text-red-600 hover:text-red-700 transition duration-200">
+            <i class="fas fa-trash mr-2"></i> Delete Group
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}Events - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-4xl font-bold text-gray-800">
+            <i class="fas fa-calendar-alt text-primary mr-3"></i>Events
+        </h1>
+        {% if user.is_authenticated %}
+        <a href="{% url 'events:create' %}" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-200 flex items-center">
+            <i class="fas fa-plus mr-2"></i>Create Event
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form method="get" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="Search events..." 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <div class="md:w-64">
+                <select name="type" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">All Types</option>
+                    {% for value, label in event_types %}
+                    <option value="{{ value }}" {% if event_type_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                <i class="fas fa-search mr-2"></i>Search
+            </button>
+        </form>
+    </div>
+
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+            <i class="fas fa-calendar-check text-secondary mr-3"></i>Upcoming Events
+        </h2>
+        
+        {% if upcoming_events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {% for event in upcoming_events %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300">
+                {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
+                    <i class="fas fa-calendar-alt text-white text-6xl"></i>
+                </div>
+                {% endif %}
+                
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-3 py-1 bg-{{ event.event_type }}-100 text-{{ event.event_type }}-600 rounded-full text-sm font-medium">
+                            {{ event.get_event_type_display }}
+                        </span>
+                        {% if event.is_online %}
+                        <span class="text-sm text-gray-600"><i class="fas fa-video mr-1"></i>Online</span>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">{{ event.title }}</h3>
+                    
+                    <div class="text-gray-600 text-sm space-y-1 mb-4">
+                        <p><i class="far fa-calendar mr-2"></i>{{ event.start_date|date:"M d, Y" }}</p>
+                        <p><i class="far fa-clock mr-2"></i>{{ event.start_date|date:"g:i A" }}</p>
+                        <p><i class="fas fa-map-marker-alt mr-2"></i>{{ event.location|default:"TBA" }}</p>
+                        <p><i class="fas fa-users mr-2"></i>{{ event.attendee_count }} 
+                            {% if event.max_participants %}/ {{ event.max_participants }}{% endif %} attendees</p>
+                    </div>
+                    
+                    <a href="{% url 'events:detail' event.pk %}" class="block w-full text-center bg-primary text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if upcoming_events.has_other_pages %}
+        <div class="flex justify-center mt-8">
+            <nav class="flex items-center gap-2">
+                {% if upcoming_events.has_previous %}
+                <a href="?upcoming_page={{ upcoming_events.previous_page_number }}{% if event_type_filter %}&type={{ event_type_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                   class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Previous</a>
+                {% endif %}
+                
+                <span class="px-4 py-2">Page {{ upcoming_events.number }} of {{ upcoming_events.paginator.num_pages }}</span>
+                
+                {% if upcoming_events.has_next %}
+                <a href="?upcoming_page={{ upcoming_events.next_page_number }}{% if event_type_filter %}&type={{ event_type_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                   class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Next</a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <i class="fas fa-calendar-times text-6xl text-gray-400 mb-4"></i>
+            <p class="text-xl text-gray-600">No upcoming events found.</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'events:create' %}" class="inline-block mt-4 text-primary hover:text-blue-600">Create the first event!</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+            <i class="fas fa-history text-gray-600 mr-3"></i>Past Events
+        </h2>
+        
+        {% if past_events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {% for event in past_events %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition duration-300 opacity-80">
+                {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-40 object-cover grayscale">
+                {% else %}
+                <div class="w-full h-40 bg-gray-300 flex items-center justify-center">
+                    <i class="fas fa-calendar-alt text-gray-500 text-5xl"></i>
+                </div>
+                {% endif %}
+                
+                <div class="p-4">
+                    <span class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-sm font-medium">
+                        {{ event.get_event_type_display }}
+                    </span>
+                    
+                    <h3 class="text-lg font-bold text-gray-700 mb-2 mt-2">{{ event.title }}</h3>
+                    
+                    <div class="text-gray-600 text-sm space-y-1 mb-3">
+                        <p><i class="far fa-calendar mr-2"></i>{{ event.start_date|date:"M d, Y" }}</p>
+                        <p><i class="fas fa-users mr-2"></i>{{ event.attendee_count }} attendees</p>
+                    </div>
+                    
+                    <a href="{% url 'events:detail' event.pk %}" class="block w-full text-center bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition duration-200">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if past_events.has_other_pages %}
+        <div class="flex justify-center mt-8">
+            <nav class="flex items-center gap-2">
+                {% if past_events.has_previous %}
+                <a href="?past_page={{ past_events.previous_page_number }}{% if event_type_filter %}&type={{ event_type_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                   class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Previous</a>
+                {% endif %}
+                
+                <span class="px-4 py-2">Page {{ past_events.number }} of {{ past_events.paginator.num_pages }}</span>
+                
+                {% if past_events.has_next %}
+                <a href="?past_page={{ past_events.next_page_number }}{% if event_type_filter %}&type={{ event_type_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                   class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Next</a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="bg-white rounded-lg shadow-md p-12 text-center">
+            <i class="fas fa-calendar-times text-6xl text-gray-400 mb-4"></i>
+            <p class="text-xl text-gray-600">No past events found.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create Event - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="bg-white rounded-lg shadow-md p-8">
+        <div class="mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-calendar-plus text-primary mr-3"></i>Create New Event
+            </h1>
+            <p class="text-gray-600 mt-2">Organize an event for your community</p>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            
+            <div class="flex gap-4 mt-6">
+                <button type="submit" class="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-200">
+                    <i class="fas fa-check mr-2"></i>Create Event
+                </button>
+                <a href="{% url 'events:list' %}" class="flex-1 bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition duration-200 text-center">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="mt-6 bg-blue-50 border-l-4 border-primary p-6 rounded">
+        <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-info-circle text-primary mr-2"></i>Tips for Creating Events</h3>
+        <ul class="text-gray-700 space-y-1">
+            <li><i class="fas fa-check text-secondary mr-2"></i>Write a clear and descriptive title</li>
+            <li><i class="fas fa-check text-secondary mr-2"></i>Provide detailed information in the description</li>
+            <li><i class="fas fa-check text-secondary mr-2"></i>Set appropriate dates and times</li>
+            <li><i class="fas fa-check text-secondary mr-2"></i>Specify location or online meeting link</li>
+            <li><i class="fas fa-check text-secondary mr-2"></i>Set participant limits if needed</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

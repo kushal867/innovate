@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static crispy_forms_tags %}
+
+{% block title %}Conversation with {{ other_user.username }} - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <a href="{% url 'messaging:inbox' %}" class="text-primary hover:text-blue-600 transition duration-200">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Inbox
+            </a>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="bg-primary text-white px-6 py-4 flex items-center">
+                <div class="flex-shrink-0 mr-4">
+                    {% if other_user.profile_picture %}
+                    <img src="{{ other_user.profile_picture.url }}" 
+                         alt="{{ other_user.username }}" 
+                         class="w-12 h-12 rounded-full border-2 border-white">
+                    {% else %}
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center border-2 border-white">
+                        <span class="text-white text-xl font-semibold">{{ other_user.username|first|upper }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold">{{ other_user.username }}</h2>
+                    <p class="text-blue-100">{{ other_user.get_role_display }}</p>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 max-h-96 overflow-y-auto" id="message-container">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="mb-4 {% if message.sender == user %}text-right{% endif %}">
+                        <div class="inline-block max-w-lg">
+                            <div class="{% if message.sender == user %}bg-primary text-white{% else %}bg-gray-200 text-gray-800{% endif %} rounded-lg px-4 py-2 shadow">
+                                <p class="break-words">{{ message.content }}</p>
+                            </div>
+                            <div class="mt-1 text-xs text-gray-500 {% if message.sender == user %}text-right{% endif %}">
+                                {% if message.sender == user %}
+                                    You
+                                {% else %}
+                                    {{ message.sender.username }}
+                                {% endif %}
+                                • {{ message.created_at|timesince }} ago
+                                {% if message.sender == user and message.is_read %}
+                                    • <i class="fas fa-check-double text-blue-500"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-comments text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">No messages yet. Start the conversation!</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="border-t border-gray-200 px-6 py-4">
+                <form method="post" class="flex items-end gap-4">
+                    {% csrf_token %}
+                    <div class="flex-1">
+                        {{ form.content }}
+                    </div>
+                    <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200 h-fit">
+                        <i class="fas fa-paper-plane mr-2"></i> Send
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const messageContainer = document.getElementById('message-container');
+    if (messageContainer) {
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
+</script>
+{% endblock %}

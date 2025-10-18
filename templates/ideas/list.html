@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ideas - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-4xl font-bold text-gray-800">Community Ideas</h1>
+            <p class="text-gray-600 mt-2">Share and discover innovative ideas from the community</p>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'ideas:create' %}" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-200 flex items-center">
+            <i class="fas fa-plus mr-2"></i> Post New Idea
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="mb-6 flex flex-wrap gap-4 items-center">
+        <form method="get" class="flex-1 flex gap-2">
+            <input type="text" name="q" value="{{ search_query|default:'' }}" placeholder="Search ideas..." class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+            <button type="submit" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </form>
+        
+        <div class="flex gap-2">
+            <a href="{% url 'ideas:list' %}" class="px-4 py-2 border border-gray-300 rounded-lg {% if not current_category %}bg-primary text-white{% else %}bg-white text-gray-700 hover:bg-gray-50{% endif %}">
+                All
+            </a>
+            {% for category in categories %}
+            <a href="?category={{ category.name }}" class="px-4 py-2 border border-gray-300 rounded-lg {% if current_category == category.name %}bg-primary text-white{% else %}bg-white text-gray-700 hover:bg-gray-50{% endif %}">
+                {{ category.get_name_display }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if page_obj %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for idea in page_obj %}
+        <div class="bg-white rounded-lg shadow-md hover:shadow-xl transition duration-200 overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-3">
+                    {% if idea.category %}
+                    <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                        {{ idea.category }}
+                    </span>
+                    {% endif %}
+                    {% if idea.is_featured %}
+                    <span class="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium">
+                        <i class="fas fa-star"></i> Featured
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <h3 class="text-xl font-bold text-gray-800 mb-2 hover:text-primary transition duration-200">
+                    <a href="{% url 'ideas:detail' idea.slug %}">{{ idea.title }}</a>
+                </h3>
+                
+                <p class="text-gray-600 mb-4 line-clamp-3">
+                    {{ idea.description|truncatewords:20 }}
+                </p>
+                
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% for tag in idea.tags.all|slice:":3" %}
+                    <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs">
+                        #{{ tag.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                
+                <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center text-gray-600">
+                            <i class="fas fa-arrow-up mr-1"></i>
+                            <span class="text-sm">{{ idea.upvote_count }}</span>
+                        </div>
+                        <div class="flex items-center text-gray-600">
+                            <i class="fas fa-comment mr-1"></i>
+                            <span class="text-sm">{{ idea.comment_count }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        {% if idea.author.profile_picture %}
+                        <img src="{{ idea.author.profile_picture.url }}" alt="{{ idea.author.username }}" class="w-8 h-8 rounded-full mr-2">
+                        {% else %}
+                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center mr-2">
+                            <span class="text-primary text-sm font-semibold">{{ idea.author.username|first|upper }}</span>
+                        </div>
+                        {% endif %}
+                        <span class="text-sm text-gray-600">{{ idea.author.username }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="mt-8 flex justify-center">
+        <nav class="flex space-x-2">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+            
+            <span class="px-4 py-2 border border-gray-300 rounded-lg bg-primary text-white">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if current_category %}&category={{ current_category }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="text-center py-12">
+        <i class="fas fa-lightbulb text-6xl text-gray-300 mb-4"></i>
+        <p class="text-xl text-gray-600">No ideas found. Be the first to share one!</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'ideas:create' %}" class="inline-block mt-4 bg-primary text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-200">
+            Post Your First Idea
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

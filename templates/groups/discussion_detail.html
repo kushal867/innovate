@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ discussion.title }} - {{ group.name }} - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-4xl">
+    <div class="mb-6">
+        <nav class="text-sm text-gray-600 mb-4">
+            <a href="{% url 'groups:list' %}" class="hover:text-primary">Groups</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'groups:detail' group.slug %}" class="hover:text-primary">{{ group.name }}</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-800">{{ discussion.title }}</span>
+        </nav>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex items-start gap-4 mb-4">
+            {% if discussion.author.profile_picture %}
+            <img src="{{ discussion.author.profile_picture.url }}" alt="{{ discussion.author.username }}" class="w-12 h-12 rounded-full">
+            {% else %}
+            <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <span class="text-primary font-semibold">{{ discussion.author.username|first|upper }}</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                    {% if discussion.pinned %}
+                    <i class="fas fa-thumbtack text-primary"></i>
+                    {% endif %}
+                    <h1 class="text-2xl font-bold text-gray-800">{{ discussion.title }}</h1>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-gray-500 mb-4">
+                    <span class="font-semibold text-gray-700">{{ discussion.author.username }}</span>
+                    <span>{{ discussion.created_at|timesince }} ago</span>
+                    {% if discussion.created_at != discussion.updated_at %}
+                    <span class="text-gray-400">(edited)</span>
+                    {% endif %}
+                </div>
+                <div class="prose max-w-none text-gray-700">
+                    {{ discussion.content|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <h2 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-comments mr-2"></i> Replies ({{ replies|length }})
+        </h2>
+
+        {% if replies %}
+        <div class="space-y-4 mb-6">
+            {% for reply in replies %}
+            <div class="border-l-4 border-primary/20 pl-4 py-2">
+                <div class="flex items-start gap-3">
+                    {% if reply.author.profile_picture %}
+                    <img src="{{ reply.author.profile_picture.url }}" alt="{{ reply.author.username }}" class="w-10 h-10 rounded-full">
+                    {% else %}
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span class="text-primary text-sm font-semibold">{{ reply.author.username|first|upper }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="font-semibold text-gray-800">{{ reply.author.username }}</span>
+                            <span class="text-sm text-gray-500">{{ reply.created_at|timesince }} ago</span>
+                        </div>
+                        <div class="text-gray-700">
+                            {{ reply.content|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-6 text-gray-500 mb-6">
+            <i class="fas fa-comment-slash text-3xl mb-2"></i>
+            <p>No replies yet. Be the first to reply!</p>
+        </div>
+        {% endif %}
+
+        {% if is_member %}
+        <div class="border-t border-gray-200 pt-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Post a Reply</h3>
+            <form method="post" action="{% url 'groups:discussion_reply' group.slug discussion.id %}">
+                {% csrf_token %}
+                {% crispy reply_form %}
+            </form>
+        </div>
+        {% else %}
+        <div class="border-t border-gray-200 pt-6 text-center">
+            <p class="text-gray-600 mb-3">You must be a member of this group to reply.</p>
+            {% if user.is_authenticated %}
+            <a href="{% url 'groups:join' group.slug %}" class="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                Join Group to Reply
+            </a>
+            {% else %}
+            <a href="{% url 'users:login' %}?next={{ request.path }}" class="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
+                Login to Reply
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="mt-6">
+        <a href="{% url 'groups:detail' group.slug %}" class="text-primary hover:text-blue-600 transition duration-200">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Group
+        </a>
+    </div>
+</div>
+{% endblock %}

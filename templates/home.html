@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-r from-blue-500 to-green-500 text-white py-20">
+    <div class="container mx-auto px-4 text-center">
+        <h1 class="text-5xl font-bold mb-4">Welcome to Nepal Ideas Platform</h1>
+        <p class="text-xl mb-8">Connect, Collaborate, and Innovate with Nepal's brightest minds</p>
+        {% if not user.is_authenticated %}
+        <div class="space-x-4">
+            <a href="{% url 'users:register' %}" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
+                Get Started
+            </a>
+            <a href="{% url 'ideas:list' %}" class="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition inline-block">
+                Explore Ideas
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Platform Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <div class="text-5xl text-blue-500 mb-4">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Share Ideas</h3>
+                <p class="text-gray-600">Post innovative ideas, get feedback, and collaborate with others to bring them to life.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <div class="text-5xl text-green-500 mb-4">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Join Groups</h3>
+                <p class="text-gray-600">Connect with like-minded individuals in topic-based groups and discussions.</p>
+            </div>
+            
+            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+                <div class="text-5xl text-yellow-500 mb-4">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-2">Learn & Grow</h3>
+                <p class="text-gray-600">Access curated resources, attend workshops, and expand your knowledge.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-gray-100 py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Latest Ideas</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for idea in latest_ideas %}
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center mb-4">
+                    {% if idea.author.profile_picture %}
+                    <img src="{{ idea.author.profile_picture.url }}" alt="{{ idea.author.username }}" class="w-10 h-10 rounded-full mr-3">
+                    {% else %}
+                    <div class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center mr-3">
+                        {{ idea.author.username|first|upper }}
+                    </div>
+                    {% endif %}
+                    <div>
+                        <p class="font-semibold">{{ idea.author.username }}</p>
+                        <p class="text-sm text-gray-500">{{ idea.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold mb-2">{{ idea.title }}</h3>
+                <p class="text-gray-600 mb-4">{{ idea.description|truncatewords:20 }}</p>
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4 text-gray-500">
+                        <span><i class="fas fa-arrow-up"></i> {{ idea.upvote_count }}</span>
+                        <span><i class="fas fa-comment"></i> {{ idea.comment_count }}</span>
+                    </div>
+                    <a href="{% url 'ideas:detail' idea.slug %}" class="text-blue-500 hover:text-blue-600 font-semibold">
+                        Read More →
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center py-12">
+                <p class="text-gray-500 text-lg">No ideas yet. Be the first to share!</p>
+                {% if user.is_authenticated %}
+                <a href="{% url 'ideas:create' %}" class="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
+                    Post an Idea
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="py-16">
+    <div class="container mx-auto px-4">
+        <h2 class="text-3xl font-bold text-center mb-12">Upcoming Events</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for event in upcoming_events %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                {% if event.image %}
+                <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-48 object-cover">
+                {% else %}
+                <div class="w-full h-48 bg-gradient-to-r from-blue-400 to-green-400"></div>
+                {% endif %}
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">{{ event.get_event_type_display }}</span>
+                        <span class="text-sm text-gray-500">{{ event.start_date|date:"M d, Y" }}</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">{{ event.title }}</h3>
+                    <p class="text-gray-600 mb-4">{{ event.description|truncatewords:15 }}</p>
+                    <a href="{% url 'events:detail' event.id %}" class="text-blue-500 hover:text-blue-600 font-semibold">
+                        View Event →
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-2 text-center py-12">
+                <p class="text-gray-500 text-lg">No upcoming events.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

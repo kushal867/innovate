@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            {% if event.image %}
+            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="w-full h-96 object-cover">
+            {% else %}
+            <div class="w-full h-96 bg-gradient-to-r from-primary to-secondary flex items-center justify-center">
+                <i class="fas fa-calendar-alt text-white text-8xl"></i>
+            </div>
+            {% endif %}
+            
+            <div class="p-8">
+                <div class="flex flex-wrap items-start justify-between mb-6">
+                    <div class="flex-1 mb-4 lg:mb-0">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="px-4 py-2 bg-primary text-white rounded-full text-sm font-medium">
+                                {{ event.get_event_type_display }}
+                            </span>
+                            {% if event.is_online %}
+                            <span class="px-4 py-2 bg-secondary text-white rounded-full text-sm font-medium">
+                                <i class="fas fa-video mr-1"></i>Online
+                            </span>
+                            {% endif %}
+                            {% if is_full %}
+                            <span class="px-4 py-2 bg-red-500 text-white rounded-full text-sm font-medium">
+                                <i class="fas fa-exclamation-circle mr-1"></i>Event Full
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ event.title }}</h1>
+                        <p class="text-gray-600 flex items-center">
+                            <i class="fas fa-user-tie mr-2"></i>Organized by 
+                            <a href="{% url 'users:profile' event.organizer.username %}" class="ml-1 text-primary hover:underline">
+                                {{ event.organizer.username }}
+                            </a>
+                        </p>
+                    </div>
+                    
+                    {% if is_organizer %}
+                    <div class="flex gap-3">
+                        <a href="{% url 'events:edit' event.pk %}" class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition duration-200">
+                            <i class="fas fa-edit mr-2"></i>Edit
+                        </a>
+                        <a href="{% url 'events:delete' event.pk %}" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200">
+                            <i class="fas fa-trash-alt mr-2"></i>Delete
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-gray-800 mb-4 text-lg">
+                            <i class="far fa-calendar-alt text-primary mr-2"></i>Event Details
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p><i class="far fa-calendar mr-3 w-5"></i><strong>Start:</strong> {{ event.start_date|date:"F d, Y" }} at {{ event.start_date|date:"g:i A" }}</p>
+                            <p><i class="far fa-calendar-check mr-3 w-5"></i><strong>End:</strong> {{ event.end_date|date:"F d, Y" }} at {{ event.end_date|date:"g:i A" }}</p>
+                            <p>
+                                <i class="fas fa-map-marker-alt mr-3 w-5"></i><strong>Location:</strong> 
+                                {{ event.location|default:"To be announced" }}
+                            </p>
+                            {% if event.is_online and event.meeting_link %}
+                            <p>
+                                <i class="fas fa-video mr-3 w-5"></i><strong>Meeting Link:</strong> 
+                                <a href="{{ event.meeting_link }}" target="_blank" class="text-primary hover:underline">Join Online</a>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-gray-800 mb-4 text-lg">
+                            <i class="fas fa-users text-primary mr-2"></i>Registration
+                        </h3>
+                        <div class="space-y-3 text-gray-700">
+                            <p><i class="fas fa-user-check mr-3 w-5"></i><strong>Attendees:</strong> {{ attendee_count }}
+                                {% if event.max_participants %}/ {{ event.max_participants }}{% endif %}
+                            </p>
+                            
+                            {% if user.is_authenticated and not is_organizer %}
+                                {% if event.start_date > now %}
+                                    {% if is_registered %}
+                                    <form method="post" action="{% url 'events:unregister' event.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="w-full bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition duration-200 mt-3">
+                                            <i class="fas fa-user-times mr-2"></i>Unregister
+                                        </button>
+                                    </form>
+                                    <p class="text-sm text-secondary mt-2"><i class="fas fa-check-circle mr-1"></i>You are registered for this event</p>
+                                    {% else %}
+                                        {% if is_full %}
+                                        <button disabled class="w-full bg-gray-400 text-white px-6 py-3 rounded-lg cursor-not-allowed mt-3">
+                                            <i class="fas fa-ban mr-2"></i>Event Full
+                                        </button>
+                                        {% else %}
+                                        <form method="post" action="{% url 'events:register' event.pk %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="w-full bg-secondary text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-200 mt-3">
+                                                <i class="fas fa-user-plus mr-2"></i>Register for Event
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    {% endif %}
+                                {% else %}
+                                    <p class="text-sm text-gray-600 mt-3"><i class="fas fa-info-circle mr-1"></i>This event has already started or ended</p>
+                                {% endif %}
+                            {% elif not user.is_authenticated %}
+                            <div class="bg-blue-50 border border-blue-200 p-4 rounded-lg mt-3">
+                                <p class="text-sm text-blue-700">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    <a href="{% url 'users:login' %}?next={{ request.path }}" class="font-medium hover:underline">Login</a> or 
+                                    <a href="{% url 'users:register' %}" class="font-medium hover:underline">Register</a> to attend this event
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="font-bold text-gray-800 mb-4 text-xl">
+                        <i class="fas fa-align-left text-primary mr-2"></i>Description
+                    </h3>
+                    <div class="prose max-w-none text-gray-700 leading-relaxed">
+                        {{ event.description|linebreaks }}
+                    </div>
+                </div>
+
+                {% if attendees %}
+                <div>
+                    <h3 class="font-bold text-gray-800 mb-4 text-xl">
+                        <i class="fas fa-users text-primary mr-2"></i>Attendees ({{ attendees|length }})
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {% for registration in attendees %}
+                        <a href="{% url 'users:profile' registration.user.username %}" class="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition duration-200 flex items-center">
+                            {% if registration.user.profile_picture %}
+                            <img src="{{ registration.user.profile_picture.url }}" alt="{{ registration.user.username }}" class="w-10 h-10 rounded-full mr-3">
+                            {% else %}
+                            <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center mr-3">
+                                {{ registration.user.username|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                            <div>
+                                <p class="font-medium text-gray-800">{{ registration.user.username }}</p>
+                                <p class="text-xs text-gray-600">{{ registration.user.get_role_display }}</p>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <a href="{% url 'events:list' %}" class="text-primary hover:text-blue-600 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Events
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

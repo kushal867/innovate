@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }}'s Profile - Nepal Community Platform{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-6xl">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-gradient-to-r from-primary to-secondary h-32"></div>
+        
+        <div class="px-6 pb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-end -mt-16 mb-6">
+                <div class="relative mb-4 md:mb-0">
+                    {% if profile_user.profile_picture %}
+                        <img src="{{ profile_user.profile_picture.url }}" alt="{{ profile_user.username }}" 
+                             class="w-32 h-32 rounded-full border-4 border-white object-cover shadow-lg">
+                    {% else %}
+                        <div class="w-32 h-32 rounded-full border-4 border-white bg-gray-300 flex items-center justify-center shadow-lg">
+                            <i class="fas fa-user text-5xl text-gray-600"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="md:ml-6 flex-1">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">{{ profile_user.username }}</h1>
+                            <p class="text-gray-600 mt-1">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                                    <i class="fas fa-user-tag mr-2"></i>{{ profile_user.get_role_display }}
+                                </span>
+                                {% if profile_user.skill_level %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-secondary/10 text-secondary ml-2">
+                                        <i class="fas fa-chart-line mr-2"></i>{{ profile_user.get_skill_level_display }}
+                                    </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        
+                        <div class="mt-4 md:mt-0 flex gap-2">
+                            {% if is_own_profile %}
+                                <a href="{% url 'users:settings' %}" 
+                                   class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition">
+                                    <i class="fas fa-cog mr-2"></i>Edit Profile
+                                </a>
+                            {% elif user.is_authenticated %}
+                                <form method="post" action="{% url 'users:follow' username=profile_user.username %}" id="follow-form">
+                                    {% csrf_token %}
+                                    <button type="submit" id="follow-btn"
+                                            class="inline-flex items-center px-4 py-2 rounded-lg transition {% if is_following %}bg-gray-300 text-gray-700 hover:bg-gray-400{% else %}bg-primary text-white hover:bg-blue-600{% endif %}">
+                                        <i class="fas {% if is_following %}fa-user-minus{% else %}fa-user-plus{% endif %} mr-2"></i>
+                                        <span id="follow-text">{% if is_following %}Unfollow{% else %}Follow{% endif %}</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Followers</p>
+                            <p class="text-2xl font-bold text-gray-900" id="followers-count">{{ followers_count }}</p>
+                        </div>
+                        <i class="fas fa-users text-3xl text-primary"></i>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Following</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ following_count }}</p>
+                        </div>
+                        <i class="fas fa-user-friends text-3xl text-secondary"></i>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-600 text-sm">Ideas Posted</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ user_ideas.count }}</p>
+                        </div>
+                        <i class="fas fa-lightbulb text-3xl text-accent"></i>
+                    </div>
+                </div>
+            </div>
+            
+            {% if profile_user.bio or profile_user.expertise or profile_user.region %}
+            <div class="border-t pt-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">About</h2>
+                
+                {% if profile_user.bio %}
+                <div class="mb-4">
+                    <p class="text-gray-700 whitespace-pre-line">{{ profile_user.bio }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% if profile_user.expertise %}
+                    <div class="flex items-start">
+                        <i class="fas fa-briefcase text-primary mt-1 mr-3"></i>
+                        <div>
+                            <p class="text-sm text-gray-600">Expertise</p>
+                            <p class="text-gray-900 font-medium">{{ profile_user.expertise }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile_user.region %}
+                    <div class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-primary mt-1 mr-3"></i>
+                        <div>
+                            <p class="text-sm text-gray-600">Location</p>
+                            <p class="text-gray-900 font-medium">{{ profile_user.region }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="border-t pt-6">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Posted Ideas</h2>
+                
+                {% if user_ideas %}
+                <div class="space-y-4">
+                    {% for idea in user_ideas %}
+                    <div class="border rounded-lg p-4 hover:shadow-md transition">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900 hover:text-primary">
+                                    <a href="{% url 'ideas:detail' slug=idea.slug %}">{{ idea.title }}</a>
+                                </h3>
+                                <p class="text-gray-600 mt-1 line-clamp-2">{{ idea.description }}</p>
+                                <div class="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                                    <span><i class="fas fa-thumbs-up mr-1"></i>{{ idea.upvote_count }}</span>
+                                    <span><i class="fas fa-comment mr-1"></i>{{ idea.comment_count }}</span>
+                                    {% if idea.category %}
+                                    <span class="px-2 py-1 bg-gray-100 rounded text-xs">{{ idea.category }}</span>
+                                    {% endif %}
+                                    <span class="ml-auto"><i class="far fa-clock mr-1"></i>{{ idea.created_at|date:"M d, Y" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-lightbulb text-6xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-600">No ideas posted yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated and not is_own_profile %}
+<script>
+document.getElementById('follow-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    fetch(this.action, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const btn = document.getElementById('follow-btn');
+            const text = document.getElementById('follow-text');
+            const icon = btn.querySelector('i');
+            const followersCount = document.getElementById('followers-count');
+            
+            if (data.is_following) {
+                btn.className = 'inline-flex items-center px-4 py-2 rounded-lg transition bg-gray-300 text-gray-700 hover:bg-gray-400';
+                text.textContent = 'Unfollow';
+                icon.className = 'fas fa-user-minus mr-2';
+            } else {
+                btn.className = 'inline-flex items-center px-4 py-2 rounded-lg transition bg-primary text-white hover:bg-blue-600';
+                text.textContent = 'Follow';
+                icon.className = 'fas fa-user-plus mr-2';
+            }
+            
+            followersCount.textContent = data.followers_count;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        this.submit();
+    });
+});
+</script>
+{% endif %}
+{% endblock %}
